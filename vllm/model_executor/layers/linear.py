@@ -359,6 +359,7 @@ class ReplicatedLinear(LinearBase):
             self.register_parameter("bias", None)
 
     def weight_loader(self, param: Parameter, loaded_weight: torch.Tensor):
+        logger.info(type(param))
         # If the weight on disk does not have a shape, give it one
         # (such scales for AutoFp8).
         # Special case for GGUF
@@ -527,6 +528,7 @@ class ColumnParallelLinear(LinearBase):
             )
 
     def weight_loader(self, param: Parameter, loaded_weight: torch.Tensor):
+        logger.info(type(param))
         output_dim = getattr(param, "output_dim", None)
 
         is_sharded_weight = getattr(param, "is_sharded_weight", False)
@@ -566,6 +568,7 @@ class ColumnParallelLinear(LinearBase):
     def weight_loader_v2(self, param: BasevLLMParameter, loaded_weight: torch.Tensor):
         # Special case for loading scales off disk, which often do not
         # have a shape (such as in the case of AutoFP8).
+        logger.info(type(param))
         if len(loaded_weight.shape) == 0:
             assert loaded_weight.numel() == 1
             loaded_weight = loaded_weight.reshape(1)
@@ -692,6 +695,7 @@ class MergedColumnParallelLinear(ColumnParallelLinear):
         loaded_weight: torch.Tensor,
         loaded_shard_id: tuple[int, ...] | int | None = None,
     ):
+        logger.info(type(param))
         self.validate_shard_id(loaded_shard_id)
         # Special case for GGUF
         # initialize GGUF param after we know the quantize type
@@ -901,6 +905,7 @@ class MergedColumnParallelLinear(ColumnParallelLinear):
         loaded_weight: torch.Tensor,
         loaded_shard_id: tuple[int, ...] | int | None = None,
     ):
+        logger.info(type(param))
         self.validate_shard_id(loaded_shard_id)
         if loaded_shard_id is None or isinstance(loaded_shard_id, tuple):
             if isinstance(param, PerTensorScaleParameter):
@@ -1113,6 +1118,7 @@ class QKVParallelLinear(ColumnParallelLinear):
         loaded_weight: torch.Tensor,
         loaded_shard_id: str | None = None,
     ):
+        logger.info(type(param))
         self.validate_shard_id(loaded_shard_id)
         if loaded_shard_id is None:  # special case for certain models
             if isinstance(param, PerTensorScaleParameter):
@@ -1153,6 +1159,7 @@ class QKVParallelLinear(ColumnParallelLinear):
         loaded_weight: torch.Tensor,
         loaded_shard_id: str | None = None,
     ):
+        logger.info(type(param))
         self.validate_shard_id(loaded_shard_id)
         # Special case for GGUF
         # initialize GGUF param after we know the quantize type
@@ -1452,6 +1459,7 @@ class RowParallelLinear(LinearBase):
         self.update_param_tp_status()
 
     def weight_loader(self, param: Parameter, loaded_weight: torch.Tensor):
+        logger.info(type(param))
         input_dim = getattr(param, "input_dim", None)
         use_bitsandbytes_4bit = getattr(param, "use_bitsandbytes_4bit", False)
         is_sharded_weight = getattr(param, "is_sharded_weight", False)
@@ -1489,6 +1497,7 @@ class RowParallelLinear(LinearBase):
     def weight_loader_v2(self, param: BasevLLMParameter, loaded_weight: torch.Tensor):
         # Special case for loading scales off disk, which often do not
         # have a shape (such as in the case of AutoFP8).
+        logger.info(type(param))
         if len(loaded_weight.shape) == 0:
             assert loaded_weight.numel() == 1
             loaded_weight = loaded_weight.reshape(1)

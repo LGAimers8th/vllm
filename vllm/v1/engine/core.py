@@ -103,7 +103,7 @@ class EngineCore:
                 VLLM_VERSION,
                 vllm_config,
             )
-            logger.info("Welcome to vllm customization!")
+            logger.info("Welcome to vllm customization!!")
 
         self.log_stats = log_stats
 
