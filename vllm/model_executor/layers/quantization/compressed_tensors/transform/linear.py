@@ -88,7 +88,7 @@ class CompressedTensorsLinearTransformMethod(LinearMethodBase):
         # get weight loader for transforms
         weight_loader: Callable = extra_weight_attrs.get("weight_loader")  # type: ignore[assignment]
         logger.info(
-            f"CompressedTensorsLinearTransformMethod.create_weights: weight_loader={weight_loader}, input_size={input_size}, output_size={output_size}, input_size_per_partition={input_size_per_partition}, output_partition_sizes={output_partition_sizes}, params_dtype={params_dtype}, extra_weight_attrs={extra_weight_attrs}"
+            f"CompressedTensorsLinearTransformMethod.create_weights: layer={layer}, weight_loader={type(weight_loader)} input_size={input_size}, output_size={output_size}, input_size_per_partition={input_size_per_partition}, output_partition_sizes={output_partition_sizes}, params_dtype={params_dtype}"
         )
 
         # HACK: UnquantizedLinearMethod does not support weight loader v2, but
@@ -163,7 +163,7 @@ class CompressedTensorsLinearTransformMethod(LinearMethodBase):
         bias: torch.Tensor | None = None,
     ) -> torch.Tensor:
         if self.input_transform is not None:
-            x = self.input_transform(x)
+            x = self.input_transform(x.clone())
 
         assert bias is None
         x = self.quant_method.apply(layer, x, bias)

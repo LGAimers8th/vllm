@@ -151,6 +151,9 @@ class _ColumnvLLMParameter(BasevLLMParameter):
             self.output_dim, self.tp_rank * shard_size, shard_size
         )
         assert self.data.shape == loaded_weight.shape
+        logger.info(
+            f"_ColumnvLLMParameter.load_column_parallel_weight: loaded_weight.shape={loaded_weight.shape}, tp_rank={self.tp_rank}, shard_size={shard_size}, output_dim={self.output_dim}"
+        )
         self.data.copy_(loaded_weight)
 
     def load_merged_column_weight(self, loaded_weight: torch.Tensor, **kwargs):
@@ -227,6 +230,9 @@ class RowvLLMParameter(BasevLLMParameter):
             loaded_weight = loaded_weight.reshape(1)
 
         assert self.data.shape == loaded_weight.shape
+        logger.info(
+            f"RowvLLMParameter.load_row_parallel_weight: loaded_weight.shape={loaded_weight.shape}, shard_size={shard_size}, tp_rank={self.tp_rank}, input_dim={self.input_dim}"
+        )
         self.data.copy_(loaded_weight)
 
 
@@ -455,6 +461,9 @@ class SharedWeightParameter(BasevLLMParameter):
         :param *args: arguments for `torch.empty`
         :param **kwargs: keyword arguments for `torch.empty`
         """
+        logger.info(
+            f"from SharedWeightParameter.add_partition: index={index}, data_key={data_key}, args={args}, kwargs={kwargs}"
+        )
         # load (shared) tensor using `data_key`
         if data_key not in self.tensors_registry:
             data = torch.empty(*args, **kwargs)
@@ -479,39 +488,45 @@ class SharedWeightParameter(BasevLLMParameter):
         assert len(self.partitions) == 1 and 0 in self.partitions
         partition = self.partitions[0]
 
+        logger.info(f"SharedWeightParameter.load_row_parallel_weight")
         ModelWeightParameter.load_row_parallel_weight(partition, loaded_weight)
 
+    # SharedWeightParameters are shared across MergedColumnParallelLinear and QKVParallelLinear classes.
     def load_merged_column_weight(self, loaded_weight: torch.Tensor, **kwargs):
+        logger.info(f"SharedWeightParameter.load_merged_column_weight: kwargs={kwargs}")
         partition_id = kwargs.pop("shard_id")
         partition_id = self._shard_id_as_int(partition_id)
         partition = self.partitions[partition_id]
+        ModelWeightParameter.load_column_parallel_weight(partition, loaded_weight)
 
-        input_dim = self.kwargs.get("input_dim")
-        shard_size = partition.data.size(input_dim) // self.tp_size
-        shard_offset = self.tp_rank * shard_size
-
-        ModelWeightParameter.load_merged_column_weight(
-            partition, loaded_weight, shard_offset=shard_offset, shard_size=shard_size
-        )
+        # input_dim = self.kwargs.get("input_dim")
+        # shard_size = partition.data.size(input_dim) // self.tp_size
+        # shard_offset = self.tp_rank * shard_size
+        #
+        # ModelWeightParameter.load_merged_column_weight(
+        #     partition, loaded_weight, shard_offset=shard_offset, shard_size=shard_size
+        # )
 
     def load_qkv_weight(self, loaded_weight: torch.Tensor, **kwargs):
+        logger.info(f"SharedWeightParameter.load_qkv_weight: kwargs={kwargs}")
         partition_id = self._shard_id_as_int(kwargs.pop("shard_id"))
         partition = self.partitions[partition_id]
 
-        input_dim = self.kwargs.get("input_dim")
-        shard_size = partition.data.size(input_dim) // self.tp_size
-        shard_offset = self.tp_rank * shard_size
-        shard_id = "q"  # fake first partition
-        num_heads = kwargs.get("num_heads")
-
-        ModelWeightParameter.load_qkv_weight(
-            partition,
-            loaded_weight,
-            shard_offset=shard_offset,
-            shard_size=shard_size,
-            shard_id=shard_id,
-            num_heads=num_heads,
-        )
+        ModelWeightParameter.load_column_parallel_weight(partition, loaded_weight)
+        # input_dim = self.kwargs.get("input_dim")
+        # shard_size = partition.data.size(input_dim) // self.tp_size
+        # shard_offset = self.tp_rank * shard_size
+        # shard_id = "q"  # fake first partition
+        # num_heads = kwargs.get("num_heads")
+        #
+        # ModelWeightParameter.load_qkv_weight(
+        #     partition,
+        #     loaded_weight,
+        #     shard_offset=shard_offset,
+        #     shard_size=shard_size,
+        #     shard_id=shard_id,
+        #     num_heads=num_heads,
+        # )
 
     def process_weights_after_loading(self):
         for key in self.partitions:
