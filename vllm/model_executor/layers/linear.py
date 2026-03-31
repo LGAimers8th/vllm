@@ -644,6 +644,7 @@ class MergedColumnParallelLinear(ColumnParallelLinear):
         return_bias: bool = True,
         disable_tp: bool = False,
     ):
+        logger.info("Hello from MergedColumnParallelLinear")
         self.output_sizes = output_sizes
         self.tp_size = get_tensor_model_parallel_world_size() if not disable_tp else 1
         self.tp_rank = get_tensor_model_parallel_rank() if not disable_tp else 0
@@ -997,6 +998,7 @@ class QKVParallelLinear(ColumnParallelLinear):
         disable_tp: bool = False,
         v_head_size: int | None = None,
     ):
+        logger.info("Hello from QKVParallelLinear")
         self.hidden_size = hidden_size
         self.head_size = head_size
         self.v_head_size = v_head_size if v_head_size is not None else head_size
@@ -1404,6 +1406,7 @@ class RowParallelLinear(LinearBase):
         return_bias: bool = True,
         disable_tp: bool = False,
     ):
+        logger.info("Hello from RowParallelLinearinfo("Hello from RowParallelLinear")")
         # Divide the weight matrix along the first dimension.
         self.tp_rank = get_tensor_model_parallel_rank() if not disable_tp else 0
         self.tp_size = get_tensor_model_parallel_world_size() if not disable_tp else 1

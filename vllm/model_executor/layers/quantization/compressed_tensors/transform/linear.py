@@ -26,6 +26,10 @@ from vllm.model_executor.layers.quantization.compressed_tensors.transform.utils 
     TransformTuple,
 )
 
+from vllm.logger import init_logger
+
+logger = init_logger(__name__)
+
 
 class CompressedTensorsLinearTransformMethod(LinearMethodBase):
     """
@@ -67,6 +71,9 @@ class CompressedTensorsLinearTransformMethod(LinearMethodBase):
 
         self.input_transform: HadamardTransform | None = None
         self.output_transform: HadamardTransform | None = None
+        logger.info(
+            f"CompressedTensorsLinearTransformMethod.__init__: quant_method={quant_method}, input_tfms={input_tfms}"
+        )
 
     def create_weights(
         self,
@@ -80,6 +87,9 @@ class CompressedTensorsLinearTransformMethod(LinearMethodBase):
     ):
         # get weight loader for transforms
         weight_loader: Callable = extra_weight_attrs.get("weight_loader")  # type: ignore[assignment]
+        logger.info(
+            f"CompressedTensorsLinearTransformMethod.create_weights: weight_loader={weight_loader}, input_size={input_size}, output_size={output_size}, input_size_per_partition={input_size_per_partition}, output_partition_sizes={output_partition_sizes}, params_dtype={params_dtype}, extra_weight_attrs={extra_weight_attrs}"
+        )
 
         # HACK: UnquantizedLinearMethod does not support weight loader v2, but
         # transforms (specifically SharedWeightParameter) requires
