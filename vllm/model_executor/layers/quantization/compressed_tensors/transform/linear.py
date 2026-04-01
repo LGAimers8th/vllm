@@ -71,9 +71,9 @@ class CompressedTensorsLinearTransformMethod(LinearMethodBase):
 
         self.input_transform: HadamardTransform | None = None
         self.output_transform: HadamardTransform | None = None
-        logger.info(
-            f"CompressedTensorsLinearTransformMethod.__init__: quant_method={quant_method}, input_tfms={input_tfms}"
-        )
+        # logger.info(
+        #     f"CompressedTensorsLinearTransformMethod.__init__: quant_method={quant_method}, input_tfms={input_tfms}"
+        # )
 
     def create_weights(
         self,
@@ -87,9 +87,9 @@ class CompressedTensorsLinearTransformMethod(LinearMethodBase):
     ):
         # get weight loader for transforms
         weight_loader: Callable = extra_weight_attrs.get("weight_loader")  # type: ignore[assignment]
-        logger.info(
-            f"CompressedTensorsLinearTransformMethod.create_weights: layer={layer}, weight_loader={type(weight_loader)} input_size={input_size}, output_size={output_size}, input_size_per_partition={input_size_per_partition}, output_partition_sizes={output_partition_sizes}, params_dtype={params_dtype}"
-        )
+        # logger.info(
+        #     f"CompressedTensorsLinearTransformMethod.create_weights: layer={layer}, weight_loader={type(weight_loader)} input_size={input_size}, output_size={output_size}, input_size_per_partition={input_size_per_partition}, output_partition_sizes={output_partition_sizes}, params_dtype={params_dtype}"
+        # )
 
         # HACK: UnquantizedLinearMethod does not support weight loader v2, but
         # transforms (specifically SharedWeightParameter) requires
