@@ -383,18 +383,18 @@ class Exaone4Model(nn.Module):
         loaded_params: set[str] = set()
         for name, loaded_weight in weights:
             if "rotary_emb.inv_freq" in name:
-                logger.info(f"Loading parameter (inv_freq skip): {name}")
+                # logger.info(f"Loading parameter (inv_freq skip): {name}")
                 continue
             if "rotary_emb.cos_cached" in name or "rotary_emb.sin_cached" in name:
                 # Models trained using ColossalAI may include these tensors in
                 # the checkpoint. Skip them.
-                logger.info(f"Loading parameter (cached skip): {name}")
+                # logger.info(f"Loading parameter (cached skip): {name}")
                 continue
             if self.quant_config is not None and (
                 scale_name := self.quant_config.get_cache_scale(name)
             ):
                 # Loading kv cache quantization scales
-                logger.info(f"Loading parameter (kv cache scale): {name} -> {scale_name}")
+                # logger.info(f"Loading parameter (kv cache scale): {name} -> {scale_name}")
                 param = params_dict[scale_name]
                 weight_loader = getattr(param, "weight_loader", default_weight_loader)
                 loaded_weight = (
@@ -415,7 +415,7 @@ class Exaone4Model(nn.Module):
                 if is_pp_missing_parameter(name, self):
                     continue
 
-                logger.info(f"Loading parameter (stacked): {original_name} -> {name} (shard {shard_id})")
+                # logger.info(f"Loading parameter (stacked): {original_name} -> {name} (shard {shard_id})")
                 param = params_dict[name]
                 weight_loader = param.weight_loader
                 weight_loader(param, loaded_weight, shard_id)
@@ -433,7 +433,7 @@ class Exaone4Model(nn.Module):
                 if is_pp_missing_parameter(name, self):
                     continue
 
-                logger.info(f"Loading parameter (default): {name}")
+                # logger.info(f"Loading parameter (default): {name}")
                 param = params_dict[name]
                 weight_loader = getattr(param, "weight_loader", default_weight_loader)
                 weight_loader(param, loaded_weight)
@@ -516,7 +516,7 @@ class Exaone4ForCausalLM(nn.Module, SupportsLoRA, SupportsPP):
         return logits
 
     def load_weights(self, weights: Iterable[tuple[str, torch.Tensor]]) -> set[str]:
-        logger.info("Starting load_weights for Exaone4ForCausalLM")
+        # logger.info("Starting load_weights for Exaone4ForCausalLM")
         loader = AutoWeightsLoader(
             self,
             # With tie_word_embeddings, we can skip lm_head.weight
